@@ -1,3 +1,7 @@
+package tasks;
+
+import manager.TaskManager;
+
 import java.util.Objects;
 
 public class Task {
@@ -6,11 +10,12 @@ public class Task {
     private String description;
     private Status status;
 
-    public Task(int id, String name, String description, Status status) {
-        this.id = id;
+    public Task(String name, String description, Status status) {
+        this.id = TaskManager.nextId;
         this.name = name;
         this.description = description;
         this.status = status;
+        TaskManager.nextId++;
     }
 
     public int getId() {
@@ -25,7 +30,7 @@ public class Task {
         return name;
     }
 
-    void setName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -33,7 +38,7 @@ public class Task {
         return description;
     }
 
-    void setDescription(String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
@@ -41,7 +46,7 @@ public class Task {
         return status;
     }
 
-    void setStatus(Status status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 
@@ -63,7 +68,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
+        return "tasks.Task{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
