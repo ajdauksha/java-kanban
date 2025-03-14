@@ -9,23 +9,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class TaskManager {
-    public static int nextId = 1;
+    private static int nextId = 0;
     private final HashMap<Integer, Task> tasks = new HashMap<>();
     private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
     private final HashMap<Integer, Epic> epics = new HashMap<>();
 
     // Методы для работы с задачами
     public Task createTask(Task task) {
-        tasks.put(task.getId(), task);
+        final int id = ++nextId;
+        task.setId(id);
+        tasks.put(id, task);
         return task;
     }
 
     public ArrayList<Task> getAllTasks() {
-        ArrayList<Task> allTasks = new ArrayList<>();
-        for (Task task : tasks.values()) {
-            allTasks.add(task);
-        }
-        return allTasks;
+        return new ArrayList<>(tasks.values());
     }
 
     public void deleteAllTasks() {
@@ -48,7 +46,9 @@ public class TaskManager {
 
     // Методы для работы с подзадачами
     public Subtask createSubtask(Subtask subtask) {
-        subtasks.put(subtask.getId(), subtask);
+        final int id = ++nextId;
+        subtask.setId(id);
+        subtasks.put(id, subtask);
         Epic epic = epics.get(subtask.getEpicId());
         epic.addSubtaskId(subtask.getId());
         updateEpicStatus(epic.getId());
@@ -56,11 +56,7 @@ public class TaskManager {
     }
 
     public ArrayList<Subtask> getAllSubtasks() {
-        ArrayList<Subtask> allSubtasks = new ArrayList<>();
-        for (Subtask subtask : subtasks.values()) {
-            allSubtasks.add(subtask);
-        }
-        return allSubtasks;
+        return new ArrayList<>(subtasks.values());
     }
 
     public void deleteAllSubtasks() {
@@ -96,16 +92,14 @@ public class TaskManager {
 
     // Методы для работы с эпиками
     public Epic createEpic(Epic epic) {
-        epics.put(epic.getId(), epic);
+        final int id = ++nextId;
+        epic.setId(id);
+        epics.put(id, epic);
         return epic;
     }
 
     public ArrayList<Epic> getAllEpics() {
-        ArrayList<Epic> allEpics = new ArrayList<>();
-        for (Epic epic : epics.values()) {
-            allEpics.add(epic);
-        }
-        return allEpics;
+        return new ArrayList<>(epics.values());
     }
 
     public void deleteAllEpics() {
