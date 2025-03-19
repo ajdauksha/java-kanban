@@ -1,13 +1,15 @@
+import manager.InMemoryTaskManager;
 import manager.TaskManager;
 import tasks.Epic;
 import tasks.Status;
 import tasks.Subtask;
 import tasks.Task;
+import utils.Managers;
 
 public class Main {
 
     public static void main(String[] args) {
-        TaskManager manager = new TaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Task task1 = manager.createTask(new Task("Задача 1", "Описание задачи 1", Status.NEW));
         Task task2 = manager.createTask(new Task( "Задача 2", "Описание задачи 2", Status.NEW));
@@ -18,6 +20,7 @@ public class Main {
         manager.updateTask(task1);
         System.out.println("Задача с обновленным статусом:");
         System.out.println(manager.getTaskById(task1.getId()));
+        System.out.println("История просмотров: " + manager.getHistory());
 
         manager.deleteTaskById(task1.getId());
         System.out.println("Список задач после удаления первой задачи:");
@@ -45,6 +48,7 @@ public class Main {
         subtask2.setStatus(Status.IN_PROGRESS);
         manager.updateSubtask(subtask2);
         System.out.println(manager.getEpicById(epic2.getId()));
+        System.out.println("История просмотров: " + manager.getHistory());
 
         System.out.println("Меняем статус подзадачи DONE (эпик долен стать DONE):");
         subtask2.setStatus(Status.DONE);
@@ -55,5 +59,8 @@ public class Main {
         manager.deleteEpicById(epic1.getId());
         System.out.println(manager.getAllEpics());
         System.out.println(manager.getAllSubtasks());
+
+        manager.getSubtaskById(subtask2.getId());
+        System.out.println("История просмотров: " + manager.getHistory());
     }
 }
