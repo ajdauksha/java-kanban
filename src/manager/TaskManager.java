@@ -5,7 +5,6 @@ import tasks.Subtask;
 import tasks.Task;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public interface TaskManager {
     // Методы для работы с задачами
