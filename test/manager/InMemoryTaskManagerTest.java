@@ -61,7 +61,7 @@ class InMemoryTaskManagerTest {
         assertNotNull(savedSubtask, "Задача не найдена.");
         assertEquals(subtask, savedSubtask, "Задачи не совпадают.");
 
-        final List<Subtask> subtasks = taskManager.getSubtasksByEpicId(1);
+        final List<Subtask> subtasks = taskManager.getSubtasksByEpicId(epic.getId());
 
         assertNotNull(subtasks, "Задачи не возвращаются.");
         assertEquals(1, subtasks.size(), "Неверное количество задач.");
