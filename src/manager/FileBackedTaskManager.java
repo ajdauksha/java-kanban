@@ -1,5 +1,7 @@
 package manager;
 
+import exceptions.ManagerLoadException;
+import exceptions.ManagerSaveException;
 import tasks.Epic;
 import tasks.Status;
 import tasks.Subtask;
@@ -122,25 +124,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private String toString(Task task) {
         return String.format("%s,%s,%s,%s,%s,%s",
                 task.getId(),
-                getType(task),
+                task.getType(),
                 task.getName(),
                 task.getStatus(),
                 task.getDescription(),
                 getEpicId(task));
     }
 
-    private TaskType getType(Task task) {
-        if (task instanceof Subtask) {
-            return TaskType.SUBTASK;
-        } else if (task instanceof Epic) {
-            return TaskType.EPIC;
-        } else {
-            return TaskType.TASK;
-        }
-    }
-
     private String getEpicId(Task task) {
-        if (task instanceof Subtask) {
+        if (TaskType.SUBTASK.equals(task.getType())) {
             return ((Subtask) task).getEpicId() + "";
         }
         return "";
@@ -159,9 +151,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         for (String line : lines) {
             if (!line.startsWith(HEADER_STRING)) {
                 Task task = manager.fromString(line);
-                if (task instanceof Subtask) {
+                if (TaskType.SUBTASK.equals(task.getType())) {
                     manager.subtasks.put(task.getId(), (Subtask) task);
-                } else if (task instanceof Epic) {
+                } else if (TaskType.EPIC.equals(task.getType())) {
                     manager.epics.put(task.getId(), (Epic) task);
                 } else {
                     manager.tasks.put(task.getId(), task);

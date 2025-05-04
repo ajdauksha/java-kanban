@@ -9,7 +9,7 @@ import java.io.File;
 public class Main {
 
     public static void main(String[] args) {
-        FileBackedTaskManager manager = new FileBackedTaskManager(new File("tasks.csv"));
+        FileBackedTaskManager manager = new FileBackedTaskManager(new File("resources/tasks.csv"));
 
         System.out.println("Создаем задачи и эпики:");
         Task task1 = manager.createTask(new Task("Задача 1", "Описание задачи 1", Status.NEW));
