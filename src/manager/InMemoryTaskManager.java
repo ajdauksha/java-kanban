@@ -23,9 +23,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task createTask(Task task) {
-        if (isOverlap(task)) {
+        if (sortedTasks.stream().anyMatch(existingTask -> isOverlap(existingTask, task))) {
             throw new ManagerOverlapException("Невозможно создать задачу, так как она пересекается с другой задачей.");
         }
+
         final int id = ++nextId;
         task.setId(id);
         tasks.put(id, task);
@@ -63,7 +64,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
-            if (isOverlap(task)) {
+            if (sortedTasks.stream().anyMatch(existingTask -> isOverlap(existingTask, task))) {
                 throw new ManagerOverlapException("Невозможно обновить задачу, так как она будет пересекаться с другой задачей.");
             }
             tasks.put(task.getId(), task);
@@ -86,7 +87,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Subtask createSubtask(Subtask subtask) {
-        if (isOverlap(subtask)) {
+        if (sortedTasks.stream().anyMatch(existingTask -> isOverlap(existingTask, subtask))) {
             throw new ManagerOverlapException("Невозможно создать подзадачу, так как она пересекается с другой задачей.");
         }
         final int id = ++nextId;
@@ -134,7 +135,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateSubtask(Subtask subtask) {
         if (subtasks.containsKey(subtask.getId())) {
-            if (isOverlap(subtask)) {
+            if (sortedTasks.stream().anyMatch(existingTask -> isOverlap(existingTask, subtask))) {
                 throw new ManagerOverlapException("Невозможно обновить подзадачу, так как она будет пересекаеться с другой задачей.");
             }
             subtasks.put(subtask.getId(), subtask);
@@ -281,22 +282,9 @@ public class InMemoryTaskManager implements TaskManager {
         return new TreeSet<>(sortedTasks);
     }
 
-    //TODO переработать
-    public boolean isOverlap(Task task) {
-        if (task.getStartTime() == null) {
-            return false;
-        }
-
-        if (sortedTasks.isEmpty()) {
-            return false;
-        }
-
-        return sortedTasks.stream()
-                .noneMatch(taskFromList ->
-                        task.getEndTime().isBefore(taskFromList.getStartTime()) ||
-                        task.getStartTime().isAfter(taskFromList.getEndTime()) ||
-                        task.getStartTime().isAfter(taskFromList.getStartTime()) && task.getEndTime().isBefore(taskFromList.getEndTime())
-                );
+    private boolean isOverlap(Task task1, Task task2) {
+        return task1.getStartTime().isBefore(task2.getEndTime())
+                && task1.getEndTime().isAfter(task2.getStartTime());
     }
 
 }
