@@ -1,5 +1,7 @@
 package tasks;
 
+import manager.TaskType;
+
 import java.util.Objects;
 
 public class Task {
@@ -44,6 +46,10 @@ public class Task {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public TaskType getType() {
+        return TaskType.TASK;
     }
 
     @Override

@@ -1,14 +1,15 @@
-import manager.TaskManager;
+import manager.FileBackedTaskManager;
 import tasks.Epic;
 import tasks.Status;
 import tasks.Subtask;
 import tasks.Task;
-import utils.Managers;
+
+import java.io.File;
 
 public class Main {
 
     public static void main(String[] args) {
-        TaskManager manager = Managers.getDefault();
+        FileBackedTaskManager manager = new FileBackedTaskManager(new File("resources/tasks.csv"));
 
         System.out.println("Создаем задачи и эпики:");
         Task task1 = manager.createTask(new Task("Задача 1", "Описание задачи 1", Status.NEW));
