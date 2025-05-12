@@ -1,5 +1,6 @@
 package manager;
 
+import exceptions.ManagerOverlapException;
 import tasks.Epic;
 import tasks.Status;
 import tasks.Subtask;
@@ -8,10 +9,7 @@ import utils.Managers;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
@@ -21,11 +19,19 @@ public class InMemoryTaskManager implements TaskManager {
     protected final HashMap<Integer, Epic> epics = new HashMap<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
+    private final TreeSet<Task> sortedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+
     @Override
     public Task createTask(Task task) {
+        if (isOverlap(task)) {
+            throw new ManagerOverlapException("Невозможно создать задачу, так как она пересекается с другой задачей.");
+        }
         final int id = ++nextId;
         task.setId(id);
         tasks.put(id, task);
+        if (task.getStartTime() != null) {
+            sortedTasks.add(task);
+        }
         return task;
     }
 
@@ -37,6 +43,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteAllTasks() {
         cleanTasksHistory();
+        sortedTasks.removeAll(tasks.values());
         tasks.clear();
     }
 
@@ -56,21 +63,36 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
+            if (isOverlap(task)) {
+                throw new ManagerOverlapException("Невозможно обновить задачу, так как она будет пересекаться с другой задачей.");
+            }
             tasks.put(task.getId(), task);
+            if (task.getStartTime() != null) {
+                sortedTasks.remove(task);
+                sortedTasks.add(task);
+            }
+
         }
     }
 
     @Override
     public void deleteTaskById(int id) {
+        if (tasks.get(id).getStartTime() != null) {
+            sortedTasks.remove(tasks.get(id));
+        }
         tasks.remove(id);
         historyManager.remove(id);
     }
 
     @Override
     public Subtask createSubtask(Subtask subtask) {
+        if (isOverlap(subtask)) {
+            throw new ManagerOverlapException("Невозможно создать подзадачу, так как она пересекается с другой задачей.");
+        }
         final int id = ++nextId;
         subtask.setId(id);
         subtasks.put(id, subtask);
+        sortedTasks.add(subtask);
         Epic epic = epics.get(subtask.getEpicId());
         epic.addSubtaskId(subtask.getId());
         updateEpicStatus(epic.getId());
@@ -86,6 +108,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteAllSubtasks() {
         cleanSubtasksHistory();
+        sortedTasks.removeAll(subtasks.values());
         subtasks.clear();
         for (Epic epic : epics.values()) {
             epic.getSubtaskIds().clear();
@@ -111,6 +134,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateSubtask(Subtask subtask) {
         if (subtasks.containsKey(subtask.getId())) {
+            if (isOverlap(subtask)) {
+                throw new ManagerOverlapException("Невозможно обновить подзадачу, так как она будет пересекаеться с другой задачей.");
+            }
             subtasks.put(subtask.getId(), subtask);
             updateEpicStatus(subtask.getEpicId());
             updateEpicEstimates(subtask.getId());
@@ -249,6 +275,28 @@ public class InMemoryTaskManager implements TaskManager {
         epic.setStartTime(sortedSubtasks.get(0).getStartTime());
         epic.setEndTime(endTime);
         epic.setDuration(totalDuration);
+    }
+
+    public TreeSet<Task> getPrioritizedTasks() {
+        return new TreeSet<>(sortedTasks);
+    }
+
+    //TODO переработать
+    public boolean isOverlap(Task task) {
+        if (task.getStartTime() == null) {
+            return false;
+        }
+
+        if (sortedTasks.isEmpty()) {
+            return false;
+        }
+
+        return sortedTasks.stream()
+                .noneMatch(taskFromList ->
+                        task.getEndTime().isBefore(taskFromList.getStartTime()) ||
+                        task.getStartTime().isAfter(taskFromList.getEndTime()) ||
+                        task.getStartTime().isAfter(taskFromList.getStartTime()) && task.getEndTime().isBefore(taskFromList.getEndTime())
+                );
     }
 
 }

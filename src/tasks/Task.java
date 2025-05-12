@@ -14,10 +14,12 @@ public class Task {
     private Duration duration;
     private LocalDateTime  startTime;
 
-    public Task(String name, String description, Status status) {
+    public Task(String name, String description, Status status, Duration duration, LocalDateTime  startTime) {
         this.name = name;
         this.description = description;
         this.status = status;
+        this.duration = duration;
+        this.startTime = startTime;
     }
 
     public int getId() {
@@ -98,7 +100,9 @@ public class Task {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", status=" + status +
+                ", status=" + status + '\'' +
+                ", duration=" + duration + '\'' +
+                ", startTime=" + startTime + '\'' +
                 '}';
     }
 

@@ -5,6 +5,8 @@ import tasks.Subtask;
 import tasks.Task;
 
 import java.io.File;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 public class Main {
 
@@ -12,15 +14,15 @@ public class Main {
         FileBackedTaskManager manager = new FileBackedTaskManager(new File("resources/tasks.csv"));
 
         System.out.println("Создаем задачи и эпики:");
-        Task task1 = manager.createTask(new Task("Задача 1", "Описание задачи 1", Status.NEW));
-        Task task2 = manager.createTask(new Task("Задача 2", "Описание задачи 2", Status.NEW));
+        Task task1 = manager.createTask(new Task("Задача 1", "Описание задачи 1", Status.NEW, Duration.ofMinutes(30), LocalDateTime.now()));
+        Task task2 = manager.createTask(new Task("Задача 2", "Описание задачи 2", Status.NEW, Duration.ofMinutes(30), LocalDateTime.now().plus(Duration.ofDays(1))));
 
-        Epic epicWithSubtasks = manager.createEpic(new Epic("Эпик с подзадачами", "Описание эпика 1"));
-        Subtask subtask1 = manager.createSubtask(new Subtask("Подзадача 1", "Описание 1", Status.NEW, epicWithSubtasks.getId()));
-        Subtask subtask2 = manager.createSubtask(new Subtask("Подзадача 2", "Описание 2", Status.NEW, epicWithSubtasks.getId()));
-        Subtask subtask3 = manager.createSubtask(new Subtask("Подзадача 3", "Описание 3", Status.NEW, epicWithSubtasks.getId()));
+        Epic epicWithSubtasks = manager.createEpic(new Epic("Эпик с подзадачами", "Описание эпика 1", Duration.ofMinutes(30), LocalDateTime.now().plus(Duration.ofDays(2))));
+        Subtask subtask1 = manager.createSubtask(new Subtask("Подзадача 1", "Описание 1", Status.NEW, epicWithSubtasks.getId(), Duration.ofMinutes(30), LocalDateTime.now().plus(Duration.ofDays(3))));
+        Subtask subtask2 = manager.createSubtask(new Subtask("Подзадача 2", "Описание 2", Status.NEW, epicWithSubtasks.getId(), Duration.ofMinutes(30), LocalDateTime.now().plus(Duration.ofDays(4))));
+        Subtask subtask3 = manager.createSubtask(new Subtask("Подзадача 3", "Описание 3", Status.NEW, epicWithSubtasks.getId(), Duration.ofMinutes(30), LocalDateTime.now().plus(Duration.ofDays(5))));
 
-        Epic epicWithoutSubtasks = manager.createEpic(new Epic("Эпик без подзадач", "Описание эпика 2"));
+        Epic epicWithoutSubtasks = manager.createEpic(new Epic("Эпик без подзадач", "Описание эпика 2", Duration.ofMinutes(30), LocalDateTime.now().plus(Duration.ofDays(6))));
 
         System.out.println("Все задачи:");
         System.out.println(manager.getAllTasks());

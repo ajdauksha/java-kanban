@@ -13,12 +13,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private final File file;
-    public static final String HEADER_STRING = "id,type,name,status,description,epic";
+    public static final String HEADER_STRING = "id,type,name,status,description,duration,startTime,epic";
 
     public FileBackedTaskManager(File file) {
         this.file = file;
@@ -122,12 +124,14 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     private String toString(Task task) {
-        return String.format("%s,%s,%s,%s,%s,%s",
+        return String.format("%s,%s,%s,%s,%s,%s,%s,%s",
                 task.getId(),
                 task.getType(),
                 task.getName(),
                 task.getStatus(),
                 task.getDescription(),
+                getMinutesFromDuration(task),
+                task.getStartTime().toString(),
                 getEpicId(task));
     }
 
@@ -166,7 +170,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private Task fromString(String value) {
         String[] values = value.split(",");
-        if (values.length != 5 && values.length != 6) {
+        if (values.length != 7 && values.length != 8) {
             throw new ManagerLoadException("Неверный формат записи.");
         }
 
@@ -175,37 +179,47 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String name = values[2];
         Status status = Status.valueOf(values[3]);
         String description = values[4];
-        int epicId = values.length == 6 ? Integer.parseInt(values[5]) : -1;
+        Duration duration = restoreDuration(Long.parseLong(values[5]));
+        LocalDateTime startTime = LocalDateTime.parse(values[6]);
+        int epicId = values.length == 8 ? Integer.parseInt(values[7]) : -1;
 
         switch (type) {
             case TASK:
-                return restoreTask(id, name, description, status);
+                return restoreTask(id, name, description, status, duration, startTime);
             case SUBTASK:
-                return restoreSubtask(id, name, description, status, epicId);
+                return restoreSubtask(id, name, description, status, epicId, duration, startTime);
             case EPIC:
-                return restoreEpic(id, name, description, status);
+                return restoreEpic(id, name, description, status, duration, startTime);
             default:
                 throw new ManagerLoadException("Неизвестный тип задачи: " + type);
         }
     }
 
-    private Task restoreTask(int id, String name, String description, Status status) {
-        Task task = new Task(name, description, status);
+    private Task restoreTask(int id, String name, String description, Status status, Duration duration, LocalDateTime startTime) {
+        Task task = new Task(name, description, status, duration, startTime);
         task.setId(id);
         return task;
     }
 
-    private Subtask restoreSubtask(int id, String name, String description, Status status, int epicId) {
-        Subtask subtask = new Subtask(name, description, status, epicId);
+    private Subtask restoreSubtask(int id, String name, String description, Status status, int epicId, Duration duration, LocalDateTime  startTime) {
+        Subtask subtask = new Subtask(name, description, status, epicId, duration, startTime);
         subtask.setId(id);
         return subtask;
     }
 
-    private Epic restoreEpic(int id, String name, String description, Status status) {
-        Epic epic = new Epic(name, description);
+    private Epic restoreEpic(int id, String name, String description, Status status, Duration duration, LocalDateTime  startTime) {
+        Epic epic = new Epic(name, description, duration, startTime);
         epic.setId(id);
         epic.setStatus(status);
         return epic;
+    }
+
+    private long getMinutesFromDuration(Task task) {
+        return task.getDuration().toMinutes();
+    }
+
+    private Duration restoreDuration(long durationInMinutes) {
+        return Duration.ofMinutes(durationInMinutes);
     }
 
 }
