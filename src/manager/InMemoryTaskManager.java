@@ -64,7 +64,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateTask(Task task) {
         if (tasks.containsKey(task.getId())) {
-            if (sortedTasks.stream().anyMatch(existingTask -> isOverlap(existingTask, task))) {
+            if (sortedTasks.stream()
+                    .filter(existingTask -> existingTask.getId() != task.getId())
+                    .anyMatch(existingTask -> isOverlap(existingTask, task))) {
                 throw new ManagerOverlapException("Невозможно обновить задачу, так как она будет пересекаться с другой задачей.");
             }
             tasks.put(task.getId(), task);
@@ -139,8 +141,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateSubtask(Subtask subtask) {
         if (subtasks.containsKey(subtask.getId())) {
-            if (sortedTasks.stream().anyMatch(existingTask -> isOverlap(existingTask, subtask))) {
-                throw new ManagerOverlapException("Невозможно обновить подзадачу, так как она будет пересекаеться с другой задачей.");
+            if (sortedTasks.stream()
+                    .filter(existingTask -> existingTask.getId() != subtask.getId())
+                    .anyMatch(existingTask -> isOverlap(existingTask, subtask))) {
+                throw new ManagerOverlapException("Невозможно обновить задачу, так как она будет пересекаться с другой задачей.");
             }
             subtasks.put(subtask.getId(), subtask);
             updateEpicStatus(subtask.getEpicId());
