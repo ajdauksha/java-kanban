@@ -131,7 +131,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 task.getStatus(),
                 task.getDescription(),
                 getMinutesFromDuration(task),
-                task.getStartTime().toString(),
+                getStartTime(task),
                 getEpicId(task));
     }
 
@@ -179,8 +179,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String name = values[2];
         Status status = Status.valueOf(values[3]);
         String description = values[4];
-        Duration duration = restoreDuration(Long.parseLong(values[5]));
-        LocalDateTime startTime = LocalDateTime.parse(values[6]);
+        Duration duration = restoreDuration(values[5]);
+        LocalDateTime startTime = restoreStartTime(values[6]);
         int epicId = values.length == 8 ? Integer.parseInt(values[7]) : -1;
 
         switch (type) {
@@ -214,12 +214,24 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return epic;
     }
 
-    private long getMinutesFromDuration(Task task) {
+    private Long getMinutesFromDuration(Task task) {
+        if (task.getDuration() == null) return null;
         return task.getDuration().toMinutes();
     }
 
-    private Duration restoreDuration(long durationInMinutes) {
-        return Duration.ofMinutes(durationInMinutes);
+    private Duration restoreDuration(String durationInMinutes) {
+        if (durationInMinutes == null) return null;
+        return Duration.ofMinutes(Long.parseLong(durationInMinutes));
+    }
+
+    private String getStartTime(Task task) {
+        if (task.getStartTime() == null) return null;
+        return task.getStartTime().toString();
+    }
+
+    private LocalDateTime restoreStartTime(String startTime) {
+        if (startTime == null) return null;
+        return LocalDateTime.parse(startTime);
     }
 
 }
