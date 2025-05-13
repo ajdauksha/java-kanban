@@ -1,7 +1,7 @@
 package manager;
 
+import exceptions.ManagerLoadException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
 import tasks.Epic;
 import tasks.Status;
 import tasks.Subtask;
@@ -9,31 +9,34 @@ import tasks.Task;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerTest {
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
     private File testFile;
-    private TaskManager manager;
 
-    @BeforeEach
-    void setUp() throws IOException {
-        testFile = File.createTempFile("test", "tasks");
-        manager = new FileBackedTaskManager(testFile);
+    @Override
+    protected FileBackedTaskManager createTaskManager() {
+        try {
+            testFile = Files.createTempFile("test", "tasks").toFile();
+            return new FileBackedTaskManager(testFile);
+        } catch (IOException e) {
+            throw new RuntimeException("Не удалось создать временный файл", e);
+        }
     }
-
 
     @Test
     void shouldSaveAndLoadMultipleTasks() {
-        Task task = new Task("Test Task", "Description", Status.NEW);
-        manager.createTask(task);
+        Task task = new Task("Test Task", "Description", Status.NEW, duration, localDateTime);
+        taskManager.createTask(task);
 
-        Epic epic = new Epic("Test Epic", "Epic Description");
-        manager.createEpic(epic);
+        Epic epic = new Epic("Test Epic", "Epic Description", duration, localDateTime.plusMinutes(60));
+        taskManager.createEpic(epic);
 
-        Subtask subtask = new Subtask("Test Subtask", "Subtask Description", Status.IN_PROGRESS, epic.getId());
-        manager.createSubtask(subtask);
+        Subtask subtask = new Subtask("Test Subtask", "Subtask Description", Status.IN_PROGRESS, epic.getId(), duration, localDateTime.plusMinutes(120));
+        taskManager.createSubtask(subtask);
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(testFile);
 
@@ -54,28 +57,43 @@ class FileBackedTaskManagerTest {
 
     @Test
     void shouldSaveStateAfterTaskUpdate() {
-        Task task = new Task("Test Task", "Description", Status.NEW);
-        manager.createTask(task);
+        Task task = new Task("Test Task", "Description", Status.NEW, duration, localDateTime);
+        taskManager.createTask(task);
 
         task.setStatus(Status.IN_PROGRESS);
-        manager.updateTask(task);
+        taskManager.updateTask(task);
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(testFile);
 
-        Task loadedTask = loadedManager.getTaskById(task.getId());
+        Task loadedTask = loadedManager.getTaskById(task.getId()).get();
         assertEquals(Status.IN_PROGRESS, loadedTask.getStatus(), "Статус задачи не обновился");
     }
 
     @Test
     void shouldSaveStateAfterTaskDeletion() {
-        Task task = new Task("Test Task", "Description", Status.NEW);
-        manager.createTask(task);
+        Task task = new Task("Test Task", "Description", Status.NEW, duration, localDateTime);
+        taskManager.createTask(task);
 
-        manager.deleteTaskById(task.getId());
+        taskManager.deleteTaskById(task.getId());
 
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(testFile);
 
         assertTrue(loadedManager.getAllTasks().isEmpty(), "Задача не была удалена");
     }
 
+    @Test
+    void shouldSaveAndLoadEmptyManager() {
+        FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(testFile);
+
+        assertTrue(loadedManager.getAllTasks().isEmpty(), "Задачи не пусты.");
+        assertTrue(loadedManager.getAllEpics().isEmpty(), "Эпики не пусты.");
+        assertTrue(loadedManager.getAllSubtasks().isEmpty(), "Подзадачи не пусты.");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFileNotFound() {
+        File nonExistentFile = new File("non_existent_file.txt");
+        assertThrows(ManagerLoadException.class, () -> FileBackedTaskManager.loadFromFile(nonExistentFile),
+                "Должно быть исключение при загрузке из несуществующего файла.");
+    }
 }
