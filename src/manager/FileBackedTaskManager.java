@@ -152,7 +152,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         FileBackedTaskManager manager = new FileBackedTaskManager(file);
 
-        for (String line : lines) {
+        lines.forEach(line -> {
             if (!line.startsWith(HEADER_STRING)) {
                 Task task = manager.fromString(line);
                 if (TaskType.SUBTASK.equals(task.getType())) {
@@ -163,7 +163,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     manager.tasks.put(task.getId(), task);
                 }
             }
-        }
+        });
 
         return manager;
     }
