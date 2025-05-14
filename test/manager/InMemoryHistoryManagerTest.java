@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import tasks.Status;
 import tasks.Task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -16,14 +18,20 @@ class InMemoryHistoryManagerTest {
     private Task task2;
     private Task task3;
 
+    protected Duration duration;
+    protected LocalDateTime localDateTime;
+
     @BeforeEach
     void setUp() {
+        duration = Duration.ofMinutes(30);
+        localDateTime = LocalDateTime.now();
+
         historyManager = new InMemoryHistoryManager();
-        task1 = new Task("Task 1", "Test description 1", Status.NEW);
+        task1 = new Task("Task 1", "Test description 1", Status.NEW, duration, localDateTime);
         task1.setId(1);
-        task2 = new Task("Task 2", "Test description 2", Status.NEW);
+        task2 = new Task("Task 2", "Test description 2", Status.NEW, duration, localDateTime.plusMinutes(60));
         task2.setId(2);
-        task3 = new Task("Task 3", "Test description 3", Status.NEW);
+        task3 = new Task("Task 3", "Test description 3", Status.NEW, duration, localDateTime.plusMinutes(120));
         task3.setId(3);
     }
 
