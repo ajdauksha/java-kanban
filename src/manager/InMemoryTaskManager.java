@@ -8,7 +8,6 @@ import tasks.Task;
 import utils.Managers;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -188,9 +187,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     private void cleanEpicsHistory() {
-        epics.values().stream()
-                .map(Epic::getId)
-                .forEach(historyManager::remove);
+        epics.values().forEach(task -> historyManager.remove(task.getId()));
     }
 
     @Override
@@ -216,7 +213,11 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epics.remove(id);
         historyManager.remove(id);
         if (epic != null) {
-            epic.getSubtaskIds().forEach(historyManager::remove);
+            epic.getSubtaskIds().forEach(subtaskId -> {
+                getSubtaskById(subtaskId).ifPresent(sortedTasks::remove);
+                historyManager.remove(subtaskId);
+                subtasks.remove(subtaskId);
+            });
         }
     }
 
@@ -275,17 +276,16 @@ public class InMemoryTaskManager implements TaskManager {
                 .sorted(Comparator.comparing(Task::getStartTime))
                 .collect(Collectors.toList());
 
-        LocalDateTime startTime = sortedSubtasks.get(0).getStartTime();
-        LocalDateTime endTime = sortedSubtasks.get(sortedSubtasks.size() - 1).getEndTime();
-        Duration totalDuration = Duration.between(startTime, endTime);
+        Duration totalDuration = subtasks.stream().map(Task::getDuration).reduce(Duration.ZERO, Duration::plus);
 
         epic.setStartTime(sortedSubtasks.get(0).getStartTime());
-        epic.setEndTime(endTime);
+        epic.setEndTime(sortedSubtasks.get(sortedSubtasks.size() - 1).getEndTime());
         epic.setDuration(totalDuration);
     }
 
-    public TreeSet<Task> getPrioritizedTasks() {
-        return new TreeSet<>(sortedTasks);
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(sortedTasks);
     }
 
     private boolean isOverlap(Task task1, Task task2) {
