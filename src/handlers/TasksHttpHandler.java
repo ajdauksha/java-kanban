@@ -1,6 +1,5 @@
 package handlers;
 
-import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpExchange;
 import exceptions.ManagerOverlapException;
 import exceptions.NotFoundException;
