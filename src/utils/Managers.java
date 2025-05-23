@@ -1,14 +1,17 @@
 package utils;
 
-import manager.HistoryManager;
-import manager.InMemoryHistoryManager;
-import manager.InMemoryTaskManager;
-import manager.TaskManager;
+import manager.*;
+
+import java.io.File;
 
 public class Managers {
 
     public static TaskManager getDefault() {
         return new InMemoryTaskManager();
+    }
+
+    public static TaskManager getDefaultFileBacked() {
+        return FileBackedTaskManager.loadFromFile(new File("resources/tasks.csv"));
     }
 
     public static HistoryManager getDefaultHistory() {
