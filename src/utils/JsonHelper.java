@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 
 public class JsonHelper {
 
-    private JsonHelper() {}
+    private JsonHelper() {
+
+    }
 
     public static Gson getCustomisedGson() {
         return new GsonBuilder()
