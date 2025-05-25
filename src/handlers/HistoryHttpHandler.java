@@ -1,8 +1,6 @@
 package handlers;
 
 import com.sun.net.httpserver.HttpExchange;
-import exceptions.ManagerOverlapException;
-import exceptions.NotFoundException;
 import manager.TaskManager;
 
 import java.io.IOException;
