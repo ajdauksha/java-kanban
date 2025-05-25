@@ -3,6 +3,8 @@ package handlers;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import exceptions.ManagerOverlapException;
+import exceptions.NotFoundException;
 import manager.TaskManager;
 import utils.JsonHelper;
 
@@ -21,6 +23,49 @@ public abstract class BaseHttpHandler implements HttpHandler {
     public BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
         this.gson = JsonHelper.getCustomisedGson();
+    }
+
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        String path = exchange.getRequestURI().getPath();
+        List<String> pathParts = getPathParts(path);
+        String method = exchange.getRequestMethod();
+
+        try {
+            switch (method) {
+                case "GET":
+                    handleGet(exchange, pathParts);
+                    break;
+                case "POST":
+                    handlePost(exchange, pathParts);
+                    break;
+                case "DELETE":
+                    handleDelete(exchange, pathParts);
+                    break;
+                default:
+                    sendNotImplemented(exchange);
+            }
+        } catch (NotFoundException e) {
+            sendNotFound(exchange);
+        } catch (NumberFormatException e) {
+            sendBadRequest(exchange, "Id должен быть целым числом");
+        } catch (ManagerOverlapException e) {
+            sendHasInteractions(exchange, "Задача имеет пересечения по времени выполнения с уже существующими");
+        }
+
+    }
+
+
+    protected void handleGet(HttpExchange exchange, List<String> pathParts) throws IOException {
+        sendNotImplemented(exchange);
+    }
+
+    protected void handlePost(HttpExchange exchange, List<String> pathParts) throws IOException {
+        sendNotImplemented(exchange);
+    }
+
+    protected void handleDelete(HttpExchange exchange, List<String> pathParts) throws IOException {
+        sendNotImplemented(exchange);
     }
 
     protected void sendText(HttpExchange h, String text) throws IOException {

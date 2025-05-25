@@ -23,36 +23,7 @@ public class TasksHttpHandler extends BaseHttpHandler {
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
-        String path = exchange.getRequestURI().getPath();
-        List<String> pathParts = getPathParts(path);
-        String method = exchange.getRequestMethod();
-
-        try {
-            switch (method) {
-                case "GET":
-                    handleGet(exchange, pathParts);
-                    break;
-                case "POST":
-                    handlePost(exchange, pathParts);
-                    break;
-                case "DELETE":
-                    handleDelete(exchange, pathParts);
-                    break;
-                default:
-                    sendNotImplemented(exchange);
-            }
-        } catch (NotFoundException e) {
-            sendNotFound(exchange);
-        } catch (NumberFormatException e) {
-            sendBadRequest(exchange, "Id должен быть целым числом");
-        } catch (ManagerOverlapException e) {
-            sendHasInteractions(exchange, "Задача имеет пересечения по времени выполнения с уже существующими");
-        }
-
-    }
-
-    private void handleGet(HttpExchange exchange, List<String> pathParts) throws IOException {
+    protected void handleGet(HttpExchange exchange, List<String> pathParts) throws IOException {
         if (pathParts.size() > 2) {
             sendNotImplemented(exchange);
             return;
@@ -92,7 +63,8 @@ public class TasksHttpHandler extends BaseHttpHandler {
         }
     }
 
-    private void handlePost(HttpExchange exchange, List<String> pathParts) throws IOException {
+    @Override
+    protected void handlePost(HttpExchange exchange, List<String> pathParts) throws IOException {
         if (pathParts.size() > 1) {
             sendNotImplemented(exchange);
             return;
@@ -133,7 +105,8 @@ public class TasksHttpHandler extends BaseHttpHandler {
         }
     }
 
-    private void handleDelete(HttpExchange exchange, List<String> pathParts) throws IOException {
+    @Override
+    protected void handleDelete(HttpExchange exchange, List<String> pathParts) throws IOException {
         if (pathParts.size() != 2) {
             sendNotImplemented(exchange);
             return;
