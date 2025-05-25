@@ -1,6 +1,7 @@
 package manager;
 
 import exceptions.ManagerOverlapException;
+import exceptions.NotFoundException;
 import tasks.Epic;
 import tasks.Status;
 import tasks.Subtask;
@@ -18,7 +19,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected final HashMap<Integer, Epic> epics = new HashMap<>();
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
-    private final TreeSet<Task> sortedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+    protected final TreeSet<Task> sortedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
 
     @Override
     public Task createTask(Task task) {
@@ -26,7 +27,11 @@ public class InMemoryTaskManager implements TaskManager {
             throw new ManagerOverlapException("Невозможно создать задачу, так как она пересекается с другой задачей.");
         }
 
-        final int id = ++nextId;
+        int id = ++nextId;
+        while (tasks.containsKey(id)) {
+            id = ++nextId;
+        }
+
         task.setId(id);
         tasks.put(id, task);
         if (task.getStartTime() != null) {
@@ -57,6 +62,9 @@ public class InMemoryTaskManager implements TaskManager {
                 .map(task -> {
                     historyManager.add(task);
                     return task;
+                })
+                .or(() -> {
+                    throw new NotFoundException(String.format("Задача с id %d не найдена", id));
                 });
     }
 
@@ -79,6 +87,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void deleteTaskById(int id) {
+        if (!tasks.containsKey(id)) {
+            throw new NotFoundException(String.format("Задача с id %d не найдена", id));
+        }
+
         if (tasks.get(id).getStartTime() != null) {
             sortedTasks.remove(tasks.get(id));
         }
@@ -91,7 +103,12 @@ public class InMemoryTaskManager implements TaskManager {
         if (sortedTasks.stream().anyMatch(existingTask -> isOverlap(existingTask, subtask))) {
             throw new ManagerOverlapException("Невозможно создать подзадачу, так как она пересекается с другой задачей.");
         }
-        final int id = ++nextId;
+
+        int id = ++nextId;
+        while (subtasks.containsKey(id)) {
+            id = ++nextId;
+        }
+
         subtask.setId(id);
         subtasks.put(id, subtask);
         sortedTasks.add(subtask);
@@ -133,6 +150,9 @@ public class InMemoryTaskManager implements TaskManager {
                 .map(subtask -> {
                     historyManager.add(subtask);
                     return subtask;
+                })
+                .or(() -> {
+                    throw new NotFoundException(String.format("Подзадача с id %d не найдена", id));
                 });
     }
 
@@ -167,7 +187,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Epic createEpic(Epic epic) {
-        final int id = ++nextId;
+        int id = ++nextId;
+        while (epics.containsKey(id)) {
+            id = ++nextId;
+        }
+
         epic.setId(id);
         epics.put(id, epic);
         return epic;
@@ -196,6 +220,9 @@ public class InMemoryTaskManager implements TaskManager {
                 .map(epic -> {
                     historyManager.add(epic);
                     return epic;
+                })
+                .or(() -> {
+                    throw new NotFoundException(String.format("Эпик с id %d не найден", id));
                 });
     }
 

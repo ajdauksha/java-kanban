@@ -1,6 +1,7 @@
 package manager;
 
 import exceptions.ManagerOverlapException;
+import exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tasks.Epic;
@@ -192,7 +193,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.createTask(task);
         taskManager.deleteTaskById(task.getId());
 
-        assertTrue(taskManager.getTaskById(task.getId()).isEmpty(), "Задача не удалена.");
+        assertThrowsExactly(NotFoundException.class, () -> taskManager.getTaskById(task.getId()).get(), "Задача не удалена.");
     }
 
     @Test
@@ -201,7 +202,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.createEpic(epic);
         taskManager.deleteEpicById(epic.getId());
 
-        assertTrue(taskManager.getEpicById(epic.getId()).isEmpty(), "Эпик не удален.");
+        assertThrowsExactly(NotFoundException.class, () -> taskManager.getEpicById(epic.getId()).get(), "Эпик не удален.");
     }
 
     @Test
@@ -212,7 +213,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.createSubtask(subtask);
         taskManager.deleteSubtaskById(subtask.getId());
 
-        assertTrue(taskManager.getSubtaskById(subtask.getId()).isEmpty(), "Подзадача не удалена.");
+        assertThrowsExactly(NotFoundException.class, () -> taskManager.getSubtaskById(subtask.getId()).get(), "Подзадача не удалена.");
     }
 
     @Test
